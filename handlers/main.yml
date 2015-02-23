@@ -1,0 +1,2 @@
+  - include: elasticsearch-main.yml
+  - include: logstash-main.yml

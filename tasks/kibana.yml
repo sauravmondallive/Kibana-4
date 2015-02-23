@@ -1,0 +1,60 @@
+---
+#  vars:
+#    kibana_url: https://download.elasticsearch.org/kibana/kibana/kibana-4.0.0-BETA2.tar.gz
+#  tasks:
+
+  - name: add kibana user
+    user: name=kibana shell=/bin/false  password=13511b99b4e82c6d42191ee60d70b0e3
+    retries: 1
+    delay: 4
+    sudo: yes
+
+  - name: create kibana dir in /opt/
+    file: path=/opt/kibana/ mode=0755 state=directory owner=kibana group=kibana
+    sudo: yes
+
+  - name: download kibana tarball
+    get_url: url=https://download.elasticsearch.org/kibana/kibana/kibana-4.0.0-BETA2.tar.gz dest=/tmp/kibana.zip validate_certs=no
+
+  - name: extract kibana tarball
+    shell: "tar xvzf /tmp/kibana.zip -C /opt/kibana/"
+## shameless hack # 4332
+  - shell: "mv -f /opt/kibana/kibana-4.0.0-BETA2/* /opt/kibana/"
+    sudo: yes
+    ignore_errors: True
+## shameless hack # 4334
+  - shell: "chown -R kibana:kibana /opt/kibana"
+    sudo: yes
+
+  - name: copy kibana script
+    copy: src=kibana.sh dest=/opt/kibana/kibana.sh mode=0755 owner=kibana group=kibana
+    sudo: yes
+    ignore_errors: True
+
+  - name: change listen port to 80
+    lineinfile: "dest=/opt/kibana/config/kibana.yml regexp='^port: 5601' line='port: 80'"
+
+## soon...
+#  - name: copy kibana templates
+#    copy: src=index.html dest=/opt/kibana/index.html mode=0644 owner=kibana group=kibana
+#    sudo: yes
+#    ignore_errors: True
+
+  - name: kibana => Set up authbind
+    shell: touch /etc/authbind/byport/80 && chown kibana /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
+    sudo: yes
+
+  - name: create kibana cron job for boot-time
+    cron: name="kibana cron start"
+          special_time=reboot
+          job="/opt/kibana/kibana.sh"
+          state=present
+          user="kibana"
+    sudo: yes
+
+  - name: start kibana.sh
+    command: /opt/kibana/kibana.sh
+    sudo: yes
+    sudo_user: kibana
+
+

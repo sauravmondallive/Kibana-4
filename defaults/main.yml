@@ -1,0 +1,16 @@
+---
+# Set the user ansible will log in with
+user: moose
+
+# Set the domain name kibana will resolve to - this is for the nginx configuration
+kibana_domain: "{{ ansible_default_ipv4.address }}"
+
+# Set the url to retrieve kibana from
+# git ver is 4, major changes from 3...
+kibana_url: https://download.elasticsearch.org/kibana/kibana/kibana-4.0.0-BETA2.tar.gz
+#kibana_url: https://download.elasticsearch.org/kibana/kibana/kibana-3.1.1.zip
+    
+# Set the location of the elastic search database wtf is this?
+es_address: http://"{{ ansible_default_ip4.address }}"/es/
+
+
